@@ -8,7 +8,7 @@
 
 function main {
 
-	source "$(dirname "${BASH_SOURCE[0]}")/prompt"
+	"$(dirname "$0")/prompt"
 	
 	first_line="$project_name"
 	
