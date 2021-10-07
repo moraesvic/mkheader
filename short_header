@@ -6,7 +6,7 @@
 #      Otherwise, will read from file "info"
 # -n : don't prefix every line with #
 
-source "$(dirname "$0")/prompt"
+source "$(dirname "${BASH_SOURCE[0]}")/prompt"
 
 first_line="$project_name"
 
