@@ -5,20 +5,23 @@
 # -i : interactive -- calls a prompt to request information
 #      Otherwise, will read from file "info"
 
-if [ -z "$(which python3)" ] ; then
-	>&2 echo "python must be installed to run this script"
-fi
-
-thisdir="$(dirname "${BASH_SOURCE[0]}")"
-source "$thisdir/prompt"
-
-year=$(date +%Y)
-os_info_1="$(uname -sr) ($(uname -p))"
-os_info_2="$(uname -v)"
-
-short_header=$("$thisdir/short_header" -n)
-
-long_header=$(cat << EOF
+function main {
+	
+	
+	if [ -z "$(which python3)" ] ; then
+		>&2 echo "python must be installed to run this script"
+	fi
+	
+	thisdir="$(dirname "${BASH_SOURCE[0]}")"
+	source "$thisdir/prompt"
+	
+	year=$(date +%Y)
+	os_info_1="$(uname -sr) ($(uname -p))"
+	os_info_2="$(uname -v)"
+	
+	short_header=$("$thisdir/short_header" -n)
+	
+	long_header=$(cat << EOF
 $short_header
 
 $disclaimer
@@ -26,9 +29,14 @@ $disclaimer
 Developed in $os_info_1
 $os_info_2
 EOF
-)
+	)
+	
+	python_script="$thisdir/square_it.py"
+	$python_script "$long_header"
+	
+	echo ""
+}
 
-python_script="$thisdir/square_it.py"
-$python_script "$long_header"
-
-echo ""
+if [[ "${BASH_SOURCE[0]}" == "$0" ]] ; then
+	main "$@"
+fi
