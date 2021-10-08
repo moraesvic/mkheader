@@ -4,11 +4,23 @@
 # Usage options
 # -i : interactive -- calls a prompt to request information
 #      Otherwise, will read from file "info"
-# -n : don't prefix every line with #
+# -n : don't parse args nor read input again ;
+#      don't prefix every line with #
 
 function main {
 
-	source "$(dirname "$0")/prompt"
+	parse=1
+	for arg in "$@"; do
+		if [ "$arg" == "-n" ] ; then
+			parse=0
+			break
+		fi
+	done
+
+	if (( $parse )) ; then
+		source "$(dirname "$0")/prompt"
+		process_args "$@"
+	fi
 	
 	first_line="$project_name"
 	
@@ -23,8 +35,6 @@ function main {
 	fi
 	
 	year=$(date +%Y)
-	os_info_1="$(uname -sr) ($(uname -p))"
-	os_info_2="$(uname -v)"
 	
 	short_header=$(cat << EOF
 $first_line
@@ -33,16 +43,7 @@ License $license $license_url_parsed
 EOF
 	)
 	
-	prefix=1
-	for arg in "$@"; do
-		if [ "$arg" == "-n" ] ; then
-			prefix=0
-			break
-		fi
-	done
-	
-	
-	if ((prefix)) ; then
+	if (( $parse )) ; then
 		sed -rn 's/^(.*)$/# \1/p' <<< $short_header
 		echo ""
 	else

@@ -6,19 +6,26 @@
 #      Otherwise, will read from file "info"
 
 function main {
-	
-	
 	if [ -z "$(which python3)" ] ; then
 		>&2 echo "python must be installed to run this script"
 	fi
 	
-	thisdir="$(dirname "${BASH_SOURCE[0]}")"
+	thisdir="$(dirname "$0")"
 	source "$thisdir/prompt"
+	process_args "$@"
 	
 	year=$(date +%Y)
 	os_info_1="$(uname -sr) ($(uname -p))"
 	os_info_2="$(uname -v)"
 	
+	export project_name
+	export repo_url
+	export author
+	export author_email
+	export license
+	export license_url
+	export disclaimer
+
 	short_header=$("$thisdir/short_header" -n)
 	
 	long_header=$(cat << EOF

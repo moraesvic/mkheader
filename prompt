@@ -1,28 +1,104 @@
 #!/bin/bash
 
-function main {
+function parse_args {
+	
+	extra_args=()
+
+	# Default values for the arguments
 
 	interactive=0
-	
-	for arg in "$@" ; do
-		if [ "$arg" = "-i" ] ; then
-			interactive=1
-			break
-		fi
+	dont_read=0
+	info_file=""
+	info_dir=""
+
+	# Control variables
+
+	info_file_set=0
+	info_dir_set=0
+
+	while [ $# -gt 0 ] ; do
+		key="$1"
+
+		case "$key" in
+			-i|--interactive)
+				interactive=1
+				shift 1
+				;;
+			-n|--no-prefix)
+				dont_read=1
+				shift 1
+				;;
+			-f|--file)
+				info_file="$2"
+				shift 2
+				;;
+			-d|--directory)
+				info_dir="$2"
+				shift 2
+				;;
+			# Unknown option
+			*)
+				>&2 echo -e "warning: unknown option $1"
+				# Save it in an array, might be useful later
+				extra_args+=("$1")
+				shift 1
+				;;
+		esac
 	done
-	
-	if ((interactive)) ; then
-		read -rp "What is the project name? " project_name
-		read -rp "What is the URL of the Git repository? " repo_url
-		read -rp "Who was/were the authors? " author
-		read -rp "What is the author's email? " author_email
-		read -rp "Under what license is this program registered? " license
-		read -rp "Type in a URL containing this license. " license_url
-		read -rp "Type in any disclaimers for the use of this software. " disclaimer
+
+	if (( $info_file_set && $info_dir_set )) ; then
+		>&2 echo -e "Error! You can either pass file or directory option, not both!"
+		exit 1
+	fi
+
+}
+
+function go_interactive {
+	read -rp "What is the project name? " project_name
+	read -rp "What is the URL of the Git repository? " repo_url
+	read -rp "Who was/were the authors? " author
+	read -rp "What is the author's email? " author_email
+	read -rp "Under what license is this program registered? " license
+	read -rp "Type in a URL containing this license. " license_url
+	read -rp "Type in any disclaimers for the use of this software. " disclaimer
+}
+
+function try_file {
+	if [ -f "$1" ] ; then
+		source "$1"
 	else
-		xdir="$(dirname "$0")"
-		source "$xdir/header_info"
+		>&2 echo -e "File supplied, $1 , does not exist."
+		exit 1
 	fi
 }
 
-main "$@"
+function process_args {
+	
+	# In order to determine variables (interactive, no_prefix,
+    # info_file, info_dir), we will parse arguments
+
+	parse_args "$@"
+	
+	if ((interactive)) ; then
+		go_interactive
+
+	elif [ -n "$info_file" ] ; then
+		try_file "$info_file"
+
+	elif [ -n "$info_dir" ] ; then
+		info_file="$info_dir/header_info"
+		info_file="$(realpath "$info_file")"
+
+		>&2 echo -e "Supplied directory $info_dir . Assuming file named $info_file"
+		try_file "$info_file"
+
+	else
+
+		info_file="$(dirname "$0")/header_info"
+		info_file="$(realpath "$info_file")"
+
+		>&2 echo -e "No valid option was supplied. Assuming file name is $info_file"
+		try_file "$info_file"
+	fi
+}
+
