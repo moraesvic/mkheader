@@ -12,7 +12,7 @@ function main {
 	
 	thisdir="$(dirname "$0")"
 	source "$thisdir/prompt"
-	process_args "$@"
+	process_args "$@" 2> /dev/null
 	
 	year=$(date +%Y)
 	os_info_1="$(uname -sr) ($(uname -p))"
